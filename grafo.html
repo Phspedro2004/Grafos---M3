@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grafo do Caminho Crítico</title>
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    body {
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+    }
+    h1 {
+      margin: 10px 0;
+    }
+    #grafo {
+      width: 100%;
+      height: 90vh;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Grafo do Caminho Crítico</h1>
+  <div id="grafo"></div>
+
+  <script>
+    // Caminho do arquivo JSON
+    const jsonPath = "grafo.json";
+
+    // Lê o arquivo JSON e gera o grafo
+    fetch(jsonPath)
+      .then(response => response.json())
+      .then(data => {
+        const nodes = [];
+        const edges = [];
+
+        // extrai os nós
+        data.nodes.forEach(n => {
+          nodes.push({
+            id: n.id,
+            label: `${n.id}\nDur: ${n.duration}`,
+            color: "#8cc9ff",
+            font: { color: "#000" }
+          });
+        });
+
+        // extrai as conexões
+        data.edges.forEach(e => {
+          edges.push({
+            from: e.from,
+            to: e.to,
+            label: e.weight ? `${e.weight}` : "",
+            arrows: "to"
+          });
+        });
+
+        // destaca o caminho crítico (se existir)
+        if (data.critical_path) {
+          for (let i = 0; i < data.critical_path.length - 1; i++) {
+            const from = data.critical_path[i];
+            const to = data.critical_path[i + 1];
+
+            // pinta nós e arestas do caminho crítico
+            const node = nodes.find(n => n.id === from);
+            if (node) node.color = "#ff4d4d";
+
+            const edge = edges.find(e => e.from === from && e.to === to);
+            if (edge) edge.color = { color: "#ff4d4d" };
+          }
+
+          // último nó também em destaque
+          const lastNode = nodes.find(n => n.id === data.critical_path[data.critical_path.length - 1]);
+          if (lastNode) lastNode.color = "#ff4d4d";
+        }
+
+        // cria o grafo
+        const container = document.getElementById("grafo");
+        const networkData = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+        const options = {
+          layout: { hierarchical: { direction: "LR", sortMethod: "directed" } },
+          edges: { smooth: true },
+          physics: false,
+          nodes: { shape: "box", margin: 10, font: { align: "center" } },
+        };
+        new vis.Network(container, networkData, options);
+      })
+      .catch(err => {
+        document.body.innerHTML = `<h2 style="color:red">Erro ao carregar o JSON: ${err}</h2>`;
+      });
+  </script>
+</body>
+</html>

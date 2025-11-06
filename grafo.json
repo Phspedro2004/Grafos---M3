@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {"id": "A", "duration": 3},
+    {"id": "B", "duration": 2},
+    {"id": "C", "duration": 4},
+    {"id": "D", "duration": 6},
+    {"id": "E", "duration": 5}
+  ],
+  "edges": [
+    {"from": "A", "to": "B"},
+    {"from": "A", "to": "C"},
+    {"from": "B", "to": "D"},
+    {"from": "C", "to": "D"},
+    {"from": "D", "to": "E"}
+  ],
+  "critical_path": [
+    "A",
+    "C",
+    "D",
+    "E"
+  ]
+}
