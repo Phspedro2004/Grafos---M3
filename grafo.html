@@ -26,70 +26,78 @@
   <h1>Grafo do Caminho Crítico</h1>
   <div id="grafo"></div>
 
-  <script>
-    // Caminho do arquivo JSON
-    const jsonPath = "grafo.json";
+<script>
+  const jsonPath = "grafo.json";
 
-    // Lê o arquivo JSON e gera o grafo
-    fetch(jsonPath)
-      .then(response => response.json())
-      .then(data => {
-        const nodes = [];
-        const edges = [];
+  fetch(jsonPath)
+    .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .then(data => {
+      const asId = v => String(v);
 
-        // extrai os nós
-        data.nodes.forEach(n => {
-          nodes.push({
-            id: n.id,
-            label: `${n.id}\nDur: ${n.duration}`,
-            color: "#8cc9ff",
-            font: { color: "#000" }
-          });
-        });
+      // monta nodes
+      const nodes = data.nodes.map(n => ({
+        id: asId(n.id),
+        label: `${n.id}\nDur: ${n.duration}`,
+        color: "#8cc9ff",
+        font: { color: "#000" }
+      }));
 
-        // extrai as conexões
-        data.edges.forEach(e => {
-          edges.push({
-            from: e.from,
-            to: e.to,
-            label: e.weight ? `${e.weight}` : "",
-            arrows: "to"
-          });
-        });
+      // monta edges com cor azul FORÇADA (padrão)
+      const edges = data.edges.map(e => ({
+        from: asId(e.from),
+        to: asId(e.to),
+        arrows: "to",
+        color: { color: "#7aa5e3" },  // força padrão azul
+        width: 1
+      }));
 
-        // destaca o caminho crítico (se existir)
-        if (data.critical_path) {
-          for (let i = 0; i < data.critical_path.length - 1; i++) {
-            const from = data.critical_path[i];
-            const to = data.critical_path[i + 1];
+      // caminho crítico (lista)
+      const path = Array.isArray(data.critical_path) ? data.critical_path.map(asId) : [];
+      const pathSet = new Set(path);
 
-            // pinta nós e arestas do caminho crítico
-            const node = nodes.find(n => n.id === from);
-            if (node) node.color = "#ff4d4d";
-
-            const edge = edges.find(e => e.from === from && e.to === to);
-            if (edge) edge.color = { color: "#ff4d4d" };
-          }
-
-          // último nó também em destaque
-          const lastNode = nodes.find(n => n.id === data.critical_path[data.critical_path.length - 1]);
-          if (lastNode) lastNode.color = "#ff4d4d";
-        }
-
-        // cria o grafo
-        const container = document.getElementById("grafo");
-        const networkData = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
-        const options = {
-          layout: { hierarchical: { direction: "LR", sortMethod: "directed" } },
-          edges: { smooth: true },
-          physics: false,
-          nodes: { shape: "box", margin: 10, font: { align: "center" } },
-        };
-        new vis.Network(container, networkData, options);
-      })
-      .catch(err => {
-        document.body.innerHTML = `<h2 style="color:red">Erro ao carregar o JSON: ${err}</h2>`;
+      // pinta nós do caminho crítico
+      path.forEach(id => {
+        const node = nodes.find(n => n.id === id);
+        if (node) node.color = "#ff4d4d";
       });
-  </script>
+
+      // gera apenas pares CONSECUTIVOS do caminho
+      const validPairs = new Set();
+      for (let i = 0; i < path.length - 1; i++) {
+        validPairs.add(`${path[i]}|${path[i+1]}`);
+      }
+
+      // ZERA qualquer pintura antiga e pinta SOMENTE os pares consecutivos
+      edges.forEach(e => {
+        const key = `${e.from}|${e.to}`;
+        if (validPairs.has(key)) {
+          e.color = { color: "#ff4d4d" };
+          e.width = 3;
+        } else {
+          // garante que nada fora do caminho fique vermelho
+          e.color = { color: "#7aa5e3" };
+          e.width = 1;
+        }
+      });
+
+      // cria o grafo
+      const container = document.getElementById("grafo");
+      const networkData = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+      const options = {
+        layout: { hierarchical: { direction: "LR", sortMethod: "directed" } },
+        edges: { smooth: true, arrows: "to" },
+        physics: false,
+        nodes: { shape: "box", margin: 10, font: { align: "center" } },
+      };
+      new vis.Network(container, networkData, options);
+    })
+    .catch(err => {
+      document.body.innerHTML = `<h2 style="color:red">Erro ao carregar o JSON: ${err}</h2>`;
+      console.error(err);
+    });
+</script>
+
+
+
 </body>
 </html>

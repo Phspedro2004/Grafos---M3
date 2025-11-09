@@ -1,22 +1,35 @@
 {
   "nodes": [
-    {"id": "A", "duration": 3},
-    {"id": "B", "duration": 2},
-    {"id": "C", "duration": 4},
-    {"id": "D", "duration": 6},
-    {"id": "E", "duration": 5}
+    {"id": "1", "duration": 5},
+    {"id": "2", "duration": 2},
+    {"id": "3", "duration": 10},
+    {"id": "4", "duration": 2},
+    {"id": "5", "duration": 8}
+    ,{"id": "Início", "duration": 0},
+    {"id": "Fim", "duration": 0}
   ],
   "edges": [
-    {"from": "A", "to": "B"},
-    {"from": "A", "to": "C"},
-    {"from": "B", "to": "D"},
-    {"from": "C", "to": "D"},
-    {"from": "D", "to": "E"}
+    {"from": "1", "to": "2"},
+    {"from": "1", "to": "3"},
+    {"from": "2", "to": "3"},
+    {"from": "2", "to": "4"},
+    {"from": "3", "to": "4"},
+    {"from": "3", "to": "5"},
+    {"from": "Início", "to": "1"},
+    {"from": "4", "to": "Fim"},
+    {"from": "5", "to": "Fim"}
   ],
   "critical_path": [
-    "A",
-    "C",
-    "D",
-    "E"
+    "Início",
+    "1",
+    "2",
+    "3",
+    "5",
+    "Fim"
+  ],
+  "critical_edges": [
+    {"from": "1", "to": "2"},
+    {"from": "2", "to": "3"},
+    {"from": "3", "to": "5"}
   ]
 }
